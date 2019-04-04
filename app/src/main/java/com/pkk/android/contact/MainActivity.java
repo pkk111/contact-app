@@ -4,16 +4,19 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.OperationApplicationException;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -119,6 +122,20 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
+    void setdata(String s,String n){
+        ArrayList<ContentProviderOperation> ops = new ArrayList<ContentProviderOperation>();
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI).withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, null).withValue(ContactsContract.RawContacts.ACCOUNT_NAME, null).build());
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI).withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0).withValue(ContactsContract.Data.MIMETYPE,ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE).withValue(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,s).build());
+        ops.add(ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI).withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0).withValue(ContactsContract.Data.MIMETYPE,ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE).withValue(ContactsContract.CommonDataKinds.Phone.NUMBER,n).withValue(ContactsContract.CommonDataKinds.Phone.TYPE, ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE).build());
+        try {
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+        } catch (OperationApplicationException e) {
+            e.printStackTrace();
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void alertdialog(){
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -138,16 +155,7 @@ public class MainActivity extends AppCompatActivity{
                 phone = p.getText().toString();
                 email = e.getText().toString();
                 if(!name.isEmpty() && !phone.isEmpty() && !email.isEmpty()){
-                    Intent intent = new Intent(ContactsContract.Intents.Insert.ACTION);
-                    intent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
-                    intent.putExtra(ContactsContract.Intents.Insert.EMAIL,email)
-                            .putExtra(ContactsContract.Intents.Insert.EMAIL_TYPE,
-                            ContactsContract.CommonDataKinds.Email.TYPE_WORK)
-                            .putExtra(ContactsContract.Intents.Insert.NAME,name)
-                            .putExtra(ContactsContract.Intents.Insert.PHONE, phone)
-                            .putExtra(ContactsContract.Intents.Insert.PHONE_TYPE,
-                                    ContactsContract.CommonDataKinds.Phone.TYPE_WORK);
-                    startActivity(intent);
+                    setdata(name,phone);
                 }
             }
 
