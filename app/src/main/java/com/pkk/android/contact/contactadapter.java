@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class contactadapter extends RecyclerView.Adapter<contactadapter.myviewholder>{
+public class contactadapter extends RecyclerView.Adapter<contactadapter.myviewHolder>{
 
     private static LayoutInflater layoutinflator;
     List<MainActivity.ContactModel> list;
@@ -26,30 +26,36 @@ public class contactadapter extends RecyclerView.Adapter<contactadapter.myviewho
 
     @NonNull
     @Override
-    public myviewholder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+    public myviewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = layoutinflator.inflate(R.layout.listitem, viewGroup, false);
-        return new myviewholder(view);
+        return new myviewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull myviewholder myviewholder, int i) {
+    public  void onBindViewHolder(@NonNull myviewHolder myviewholder,final int i) {
         myviewholder.name.setText(list.get(i).name);
         myviewholder.phone.setText(list.get(i).mobileNumber);
-        myviewholder.contact.setId(Integer.parseInt(list.get(i).id));
+        /*myviewholder.contact.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                MainActivity.call(list.get(i).mobileNumber);
+            }
+        });*/
     }
+
 
     @Override
     public int getItemCount() {
-        return 0;
+        return list.size();
     }
 
-    public static class myviewholder extends RecyclerView.ViewHolder{
+    public static class myviewHolder extends RecyclerView.ViewHolder{
         public TextView name;
         public CardView contact;
         public TextView phone;
         public TextView email;
 
-        public myviewholder(@NonNull View itemView) {
+        public myviewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.name);
             phone = itemView.findViewById(R.id.phone);
@@ -57,4 +63,5 @@ public class contactadapter extends RecyclerView.Adapter<contactadapter.myviewho
             contact = itemView.findViewById(R.id.contact);
         }
     }
+
 }

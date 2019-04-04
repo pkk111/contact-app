@@ -1,64 +1,119 @@
 package com.pkk.android.contact;
 
+import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity{
 
 
     private RecyclerView recyclerView;
     private contactadapter cadapter;
     private String name;
-    private int phone;
+    private String phone;
     private String email;
+    private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 1;
+    private static final int MY_PERMISSIONS_REQUEST_WRITE_CONTACTS = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        recyclerView = findViewById(R.id.recycler_view);
-        cadapter = new contactadapter(this);
+        final ProgressDialog pd=new ProgressDialog(this);
+        pd.setTitle("Loading");
+        pd.setMessage("Please Wait...");
+        pd.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        pd.show();
+        setTitle("Contact app");
+        requestpermission();
         setAdapter();
-
+        pd.cancel();
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
                 alertdialog();
             }
         });
+        fab.show();
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.contact:
-                Intent i=new Intent();
+
+    void requestpermission(){
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.READ_CONTACTS)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+            } else {
+                // No explanation needed; request the permission
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_CONTACTS},
+                        MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+            }
+        }
+
+
+
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_CONTACTS)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.WRITE_CONTACTS)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+            } else {
+                // No explanation needed; request the permission
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_CONTACTS},
+                        MY_PERMISSIONS_REQUEST_WRITE_CONTACTS);
+            }
+        }
+        recyclerView = findViewById(R.id.recycler_view);
+        cadapter = new contactadapter(this);
+    }
+
+    public void onRequestPermissionsResult(int requestCode,
+                                           String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_READ_CONTACTS: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                } else {
+                }
+                return;
+            }
         }
     }
 
@@ -74,14 +129,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         builder.setView(entryview).setTitle("Enter Details");
 
-        builder.setPositiveButton("Start", new DialogInterface.OnClickListener() {
+        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 name = n.getText().toString();
-                phone = Integer.parseInt(p.getText().toString());
+                phone = p.getText().toString();
                 email = e.getText().toString();
-                if(!name.isEmpty() && !p.getText().toString().isEmpty() && !email.isEmpty())
-                    storecontact();
+                if(!name.isEmpty() && !phone.isEmpty() && !email.isEmpty()){
+                /*long id = getcontactid();
+                setContactName(id,name);
+                setContactNumber(id,phone);
+                setContactemail(id,email);
+                toast("Details Saved");*/
+                    Intent intent = new Intent(ContactsContract.Intents.Insert.ACTION);
+                    intent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
+                    intent.putExtra(ContactsContract.Intents.Insert.EMAIL,email)
+                            .putExtra(ContactsContract.Intents.Insert.EMAIL_TYPE,
+                            ContactsContract.CommonDataKinds.Email.TYPE_WORK)
+                            .putExtra(ContactsContract.Intents.Insert.NAME,name)
+                            .putExtra(ContactsContract.Intents.Insert.PHONE, phone)
+                            .putExtra(ContactsContract.Intents.Insert.PHONE_TYPE,
+                                    ContactsContract.CommonDataKinds.Phone.TYPE_WORK);
+                    startActivity(intent);
+                }
             }
 
         });
@@ -93,6 +163,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         builder.show();
     }
+
+    void toast(String message){
+        Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
 
     private void setAdapter(){
         recyclerView.setAdapter(cadapter);
@@ -143,50 +216,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return list;
     }
 
-    private void storecontact(){
-        ContentValues contentValues = new ContentValues();
-        long ret = ContentUris.parseId(getContentResolver().insert(ContactsContract.RawContacts.CONTENT_URI,contentValues));
-
-    }
-    private void insertContactDisplayName(Uri addContactsUri, long rawContactId, String displayName)
+    private void setContactName(long Id, String displayName)
     {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId);
-
-        // Each contact must has an mime type to avoid java.lang.IllegalArgumentException: mimetype is required error.
+        contentValues.put(ContactsContract.Data.CONTACT_ID, Id);
         contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
-
-        // Put contact display name value.
         contentValues.put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, displayName);
-
-        getContentResolver().insert(addContactsUri, contentValues);
-
+        getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
     }
 
-    private void insertContactPhoneNumber(Uri addContactsUri, long rawContactId, String phoneNumber, String phoneTypeStr)
+    private void setContactNumber(long Id, String phoneNumber)
     {
         ContentValues contentValues = new ContentValues();
-        contentValues.put(ContactsContract.Data.RAW_CONTACT_ID, rawContactId);
+        contentValues.put(ContactsContract.Data.CONTACT_ID,Id);
         contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
         contentValues.put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber);
+        getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
+    }
 
-        int phoneContactType = ContactsContract.CommonDataKinds.Phone.TYPE_HOME;
+    private long getcontactid(){
+        ContentValues contentValues = new ContentValues();
+        long ret=ContentUris.parseId(getContentResolver().insert(ContactsContract.Data.CONTENT_URI,contentValues));
+        return ret;
+    }
 
-        if("home".equalsIgnoreCase(phoneTypeStr))
-        {
-            phoneContactType = ContactsContract.CommonDataKinds.Phone.TYPE_HOME;
-        }else if("mobile".equalsIgnoreCase(phoneTypeStr))
-        {
-            phoneContactType = ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE;
-        }else if("work".equalsIgnoreCase(phoneTypeStr))
-        {
-            phoneContactType = ContactsContract.CommonDataKinds.Phone.TYPE_WORK;
-        }
-        // Put phone type value.
-        contentValues.put(ContactsContract.CommonDataKinds.Phone.TYPE, phoneContactType);
-
-        // Insert new contact data into phone contact list.
-        getContentResolver().insert(addContactsUri, contentValues);
+    private void setContactemail(long Id,String email){
+        ContentValues contentValues =new ContentValues();
+        contentValues.put(ContactsContract.Data.RAW_CONTACT_ID,Id);
+        contentValues.put(ContactsContract.CommonDataKinds.Email.ADDRESS,email);
 
     }
 
