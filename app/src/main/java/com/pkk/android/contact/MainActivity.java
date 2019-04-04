@@ -1,6 +1,7 @@
 package com.pkk.android.contact;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
@@ -53,7 +55,6 @@ public class MainActivity extends AppCompatActivity{
         setTitle("Contact app");
         requestpermission();
         setAdapter();
-        pd.cancel();
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,6 +63,7 @@ public class MainActivity extends AppCompatActivity{
             }
         });
         fab.show();
+        pd.cancel();
     }
 
 
@@ -136,11 +138,6 @@ public class MainActivity extends AppCompatActivity{
                 phone = p.getText().toString();
                 email = e.getText().toString();
                 if(!name.isEmpty() && !phone.isEmpty() && !email.isEmpty()){
-                /*long id = getcontactid();
-                setContactName(id,name);
-                setContactNumber(id,phone);
-                setContactemail(id,email);
-                toast("Details Saved");*/
                     Intent intent = new Intent(ContactsContract.Intents.Insert.ACTION);
                     intent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
                     intent.putExtra(ContactsContract.Intents.Insert.EMAIL,email)
@@ -164,9 +161,6 @@ public class MainActivity extends AppCompatActivity{
         builder.show();
     }
 
-    void toast(String message){
-        Toast.makeText(this,message,Toast.LENGTH_SHORT).show(); }
-
     private void setAdapter(){
         recyclerView.setAdapter(cadapter);
         cadapter.setlist(getContacts());
@@ -175,76 +169,20 @@ public class MainActivity extends AppCompatActivity{
     }
 
     public class ContactModel {
-        public String id;
         public String name;
         public String mobileNumber;
-
     }
 
     public List<ContactModel> getContacts() {
         List<ContactModel> list = new ArrayList<>();
-        ContentResolver contentResolver = getContentResolver();
-        Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI,
-                null,
-                null,
-                null,
-                null);
-        if (cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
-                if (cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-                    Cursor cursorInfo = contentResolver.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-                            new String[] {id},
-                            null);
+        Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null, null, null);
 
-                    while (cursorInfo.moveToNext()) {
-                        ContactModel info = new ContactModel();
-                        info.id = id;
-                        info.name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-                        info.mobileNumber = cursorInfo.getString(cursorInfo.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        list.add(info);
-                    }
-
-                    cursorInfo.close();
-                }
-            }
-            cursor.close();
-        }
+        while (cursor.moveToNext()) {
+            ContactModel info = new ContactModel();
+            info.name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+            info.mobileNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+        list.add(info);}
         return list;
-    }
-
-    private void setContactName(long Id, String displayName)
-    {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ContactsContract.Data.CONTACT_ID, Id);
-        contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE);
-        contentValues.put(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME, displayName);
-        getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
-    }
-
-    private void setContactNumber(long Id, String phoneNumber)
-    {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ContactsContract.Data.CONTACT_ID,Id);
-        contentValues.put(ContactsContract.Data.MIMETYPE, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE);
-        contentValues.put(ContactsContract.CommonDataKinds.Phone.NUMBER, phoneNumber);
-        getContentResolver().insert(ContactsContract.Data.CONTENT_URI, contentValues);
-    }
-
-    private long getcontactid(){
-        ContentValues contentValues = new ContentValues();
-        long ret=ContentUris.parseId(getContentResolver().insert(ContactsContract.Data.CONTENT_URI,contentValues));
-        return ret;
-    }
-
-    private void setContactemail(long Id,String email){
-        ContentValues contentValues =new ContentValues();
-        contentValues.put(ContactsContract.Data.RAW_CONTACT_ID,Id);
-        contentValues.put(ContactsContract.CommonDataKinds.Email.ADDRESS,email);
 
     }
-
 }
