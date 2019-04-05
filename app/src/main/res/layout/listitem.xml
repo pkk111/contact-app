@@ -14,7 +14,6 @@
         appNs:cardCornerRadius="15dp"
         android:clickable="true"
         android:padding="10dp"
-        app:cardElevation="8dp"
         app:cardCornerRadius="15dp">
 
         <LinearLayout

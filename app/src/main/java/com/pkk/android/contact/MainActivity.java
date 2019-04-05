@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 alertdialog();
+                cadapter.notifyDataSetChanged();
             }
         });
         fab.show();
@@ -76,11 +77,7 @@ public class MainActivity extends AppCompatActivity{
                 != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                     Manifest.permission.READ_CONTACTS)) {
-                // Show an explanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
             } else {
-                // No explanation needed; request the permission
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.READ_CONTACTS},
                         MY_PERMISSIONS_REQUEST_READ_CONTACTS);
@@ -100,7 +97,7 @@ public class MainActivity extends AppCompatActivity{
             } else {
                 // No explanation needed; request the permission
                 ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.READ_CONTACTS},
+                        new String[]{Manifest.permission.WRITE_CONTACTS},
                         MY_PERMISSIONS_REQUEST_WRITE_CONTACTS);
             }
         }
