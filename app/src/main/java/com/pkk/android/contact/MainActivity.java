@@ -32,6 +32,9 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity{
@@ -63,7 +66,6 @@ public class MainActivity extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 alertdialog();
-                cadapter.notifyDataSetChanged();
             }
         });
         fab.show();
@@ -153,6 +155,8 @@ public class MainActivity extends AppCompatActivity{
                 email = e.getText().toString();
                 if(!name.isEmpty() && !phone.isEmpty() && !email.isEmpty()){
                     setdata(name,phone);
+                    cadapter.setlist(getContacts());
+                    cadapter.notifyDataSetChanged();
                 }
             }
 
@@ -173,14 +177,15 @@ public class MainActivity extends AppCompatActivity{
         cadapter.notifyDataSetChanged();
     }
 
-    public class ContactModel {
+    public class ContactModel{
         public String name;
         public String mobileNumber;
     }
 
+
     public List<ContactModel> getContacts() {
         List<ContactModel> list = new ArrayList<>();
-        Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null, null, null);
+        Cursor cursor = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null, null, ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME);
 
         while (cursor.moveToNext()) {
             ContactModel info = new ContactModel();

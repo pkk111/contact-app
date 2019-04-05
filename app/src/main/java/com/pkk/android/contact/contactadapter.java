@@ -35,12 +35,6 @@ public class contactadapter extends RecyclerView.Adapter<contactadapter.myviewHo
     public  void onBindViewHolder(@NonNull myviewHolder myviewholder,final int i) {
         myviewholder.name.setText(list.get(i).name);
         myviewholder.phone.setText(list.get(i).mobileNumber);
-        /*myviewholder.contact.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                MainActivity.call(list.get(i).mobileNumber);
-            }
-        });*/
     }
 
 

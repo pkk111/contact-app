@@ -6,12 +6,8 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     android:orientation="vertical">
-    <Toolbar
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="@color/colorPrimary"
-        android:id="@+id/toolbar">
-    </Toolbar>
+
+
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view"
@@ -21,7 +17,6 @@
         android:scrollbarStyle="insideOverlay"
         android:scrollbars="vertical"
         android:fadeScrollbars="true"
-        android:layout_below="@+id/toolbar"
         android:scrollIndicators="right"
         android:scrollbarFadeDuration="500"
         android:scrollbarDefaultDelayBeforeFade="1000"/>
